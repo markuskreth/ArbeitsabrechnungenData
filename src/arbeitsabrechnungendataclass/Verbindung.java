@@ -1,112 +1,77 @@
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package arbeitsabrechnungendataclass;
 
-/**
- *
- * @author markus
- */
-import java.sql.*;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Properties;
 
-public class Verbindung {
-    static String treiber = "com.mysql.jdbc.Driver";
-    static String URL = "jdbc:mysql://192.168.0.1";
-//    static String datenbank = "Arbeitrechnungen";
-    Statement befehl = null;
-    Connection verbindung = null;
+import de.kreth.hsqldbcreator.HsqlCreator;
 
-    public Verbindung(String datenbank, String benutzer, String password){
-        /**
-         * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank auslesen
-         * und in die tabellenliste speichern.
-         */
+public abstract class Verbindung {
 
-        // Treiber laden
-        try {
-            Class.forName(treiber).newInstance();
-        } catch (Exception e) {
-            System.out.println("JDBC/MySql-Treiber konnte nicht geladen werden!");
-            return;
-        }
-        // Verbindung aufbauen
-        try {
-            verbindung = DriverManager.getConnection(URL + "/" + datenbank, benutzer, password);
-            befehl = verbindung.createStatement();
-        } catch (Exception e) {
-            System.err.println("Verbindung zu " + URL +
-                    " konnte nicht hergestellt werden.");
-        }
-    }
+	public enum ConnectionTypes {
+		HSQLDB, MYSQL
+	}
 
-    public Verbindung(String server, String datenbank, String benutzer, String password){
-        /**
-         * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank auslesen
-         * und in die tabellenliste speichern.
-         */
-        String URL2 = "jdbc:mysql://" + server;
+	private static final String DBTYPE = "dbtype";
 
-        // Treiber laden
-        try {
-            Class.forName(treiber).newInstance();
-        } catch (Exception e) {
-            System.out.println("JDBC/MySql-Treiber konnte nicht geladen werden!");
-            return;
-        }
+	public abstract boolean connected();
 
-        // Verbindung aufbauen
-        try {
-            verbindung = DriverManager.getConnection(URL2 + "/" + datenbank, benutzer, password);
-            befehl = verbindung.createStatement();
-        } catch (Exception e) {
-            System.err.println("Verbindung zu " + URL2 +
-                    " konnte nicht hergestellt werden.");
-        }
-    }
+	/**
+	 * Die Sql-Abfrage gibt den ResultSet zurück.
+	 * 
+	 * @param sql
+	 * @return Ergebnis der Abfrage
+	 * @throws SQLException
+	 */
+	public abstract ResultSet query(CharSequence sql) throws SQLException;
 
-    public boolean connected(){
-        try{
-            return verbindung.isValid(3);
-        }catch (Exception e) {
-            return false;
-        }
-    }
+	/**
+	 * führt den sqlbefehl aus und liefert bei erfolg true zurück.
+	 * 
+	 * @param sql
+	 * @return befehl ausgeführt oder nicht?
+	 */
+	public abstract boolean sql(CharSequence sql) throws SQLException;
 
-     /**
-     * Die Sql-Abfrage gibt den ResultSet zurück. Dafür muss vermutlich java.sql.*
-     * in der aufrufenden Klasse definiert sein :(
-     */
-    public ResultSet query(String sqltext){
+	public abstract void close();
 
-        ResultSet daten = null;
-        try {
-            daten = befehl.executeQuery(sqltext);
-        } catch (Exception e) {
-            System.err.println("SQL: " + sqltext);
-            e.printStackTrace();
-        }
-        return daten;
-    }
+	/**
+	 * stellt eine Verbindung her
+	 * @param options
+	 * @return {@link Verbindung} passend zu den Einstellungen in options
+	 */
+	public static Verbindung getVerbindung(Properties options) {
 
-    public boolean sql(String sqltext){
-        boolean ok = false;
-        try {
-            befehl.execute(sqltext);
-            ok = true;
-        } catch (Exception e) {
-            System.err.println("SQL: " + sqltext);
-            e.printStackTrace();
-        }
-        return ok;
-    }
+		Verbindung verbindung = null;
+		if (isOldConnectionData(options)) {
+			verbindung = new Verbindung_mysql(options);
+		} else if (options.containsKey(DBTYPE)) {
+			
+			ConnectionTypes type = ConnectionTypes.valueOf(options
+					.getProperty(DBTYPE));
 
-    public void close(){
-        try {
-            verbindung.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+			switch (type) {
+			case HSQLDB:
+				HsqlCreator instance = HsqlCreator.getInstance();
+				verbindung = new Verbindung_HsqlCreator(instance);
+				break;
+			case MYSQL:
+				verbindung = new Verbindung_mysql(options);
+				break;
+			default:
+				verbindung = null;
+				break;
+
+			}
+		}
+
+		return verbindung;
+	}
+
+	private static boolean isOldConnectionData(Properties options) {
+		return options.containsKey("sqlserver")
+				&& options.containsKey("datenbank")
+				&& options.containsKey("user")
+				&& options.containsKey("password");
+	}
 }
