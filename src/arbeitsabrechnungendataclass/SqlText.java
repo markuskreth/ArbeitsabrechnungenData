@@ -15,7 +15,6 @@ import java.util.*;
 
 public class SqlText {
     private Vector<String> felderliste = new Vector<String>();   // Werte für die bearbeiteten Tabellenfelder
-    private Vector<String> werte = new Vector<String>(); // Tabellenfelder, die bearbeitet werden sollen
     protected String tabellenname;
     protected String where = "";
 
@@ -37,13 +36,13 @@ public class SqlText {
         this.where = where;
     }
 
-    public SqlText(String Tabellenname, String Felder){
+    public SqlText(String Tabellenname, String spalten_namen){
         this.setTabellenname(Tabellenname);
         
         // Übergebene Felder aufteilen und speichern
         String[] meinefelder;
-        Felder = Felder.replace(" ", "");
-        meinefelder = Felder.split(",");
+        String spalten = spalten_namen.replace(" ", "");
+        meinefelder = spalten.split(",");
         for (int i=0; i<meinefelder.length; i++){
             felderliste.add(meinefelder[i]);
         }

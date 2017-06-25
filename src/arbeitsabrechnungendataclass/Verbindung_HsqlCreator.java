@@ -26,11 +26,13 @@ public class Verbindung_HsqlCreator extends Verbindung {
 
 	@Override
 	public ResultSet query(CharSequence sql) throws SQLException {
+	   logger.debug("executing: " + sql);
 		return stm.executeQuery(sql.toString());
 	}
 
 	@Override
 	public boolean sql(CharSequence sql) throws SQLException {
+      logger.debug("executing: " + sql);
 		return stm.execute(sql.toString());
 	}
 
@@ -43,4 +45,12 @@ public class Verbindung_HsqlCreator extends Verbindung {
 		}
 	}
 
+	@Override
+	public String toString() {
+	   try {
+         return stm.getConnection().getMetaData().getURL();
+      } catch (SQLException e) {
+         return stm.toString();
+      }
+	}
 }

@@ -5,15 +5,15 @@ package arbeitsabrechnungendataclass;
  *
  * @author markus
  */
-import java.sql.*;
-import java.util.*;
+import java.sql.ResultSet;
+import java.util.Vector;
 
 public class Main {
 
     Verbindung_hsqldb verbindung;
     ResultSet datenmenge;
     String akt_tabelle = null;
-    Vector spaltenliste = new Vector();
+
     int id = 0;
     Vector<String> tabellenliste = new Vector<String>();
 
@@ -203,9 +203,6 @@ public class Main {
             System.out.println("ID\tKunde\t\t\t\tAuftraggeber");
             System.out.println("");
 
-            // Datensätze ausgeben
-            String id, kunde, auftraggeber;
-
             while (datenmenge.next()) {
 //                id = datenmenge.getString(0);
 //                kunde = datenmenge.getString("Kunde");
@@ -238,6 +235,7 @@ public class Main {
             }
         }catch(java.sql.SQLException ex)
         {
+           System.err.println(ex);   
         }
 
         if (!tabellenliste.isEmpty()) {

@@ -6,106 +6,112 @@
 package arbeitsabrechnungendataclass;
 
 /**
- *
  * @author markus
  */
 import java.sql.*;
 
-public class VerbindungJavaDB {
-    static String treiber = "org.apache.derby.jdbc.ClientDriver";
-    static String URL = "jdbc:derby://localhost:1527/arbeitrechnungenData";
-//    static String datenbank = "Arbeitrechnungen";
-    Statement befehl = null;
-    Connection verbindung = null;
+import org.apache.log4j.Logger;
 
-    public VerbindungJavaDB(String datenbank, String benutzer, String password){
-        /**
-         * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank auslesen
-         * und in die tabellenliste speichern.
-         */
+public class VerbindungJavaDB extends Verbindung {
+   
+   static String treiber = "org.apache.derby.jdbc.ClientDriver";
+   static String URL = "jdbc:derby://localhost:1527/arbeitrechnungenData";
+   
+   // static String datenbank = "Arbeitrechnungen";
+   Statement befehl = null;
+   Connection verbindung = null;
 
-        // Treiber laden
-        try {
-            Class.forName(treiber).newInstance();
-        } catch (Exception e) {
-            System.out.println("JDBC/Derby-Treiber konnte nicht geladen werden!");
-            return;
-        }
-        // Verbindung aufbauen
-        try {
-            verbindung = DriverManager.getConnection(URL + "/" + datenbank, benutzer, password);
-            befehl = verbindung.createStatement();
-        } catch (Exception e) {
-            System.err.println("Verbindung zu " + URL +
-                    " konnte nicht hergestellt werden.");
-        }
-    }
+   public VerbindungJavaDB(String datenbank, String benutzer, String password) {
+      /**
+       * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank
+       * auslesen
+       * und in die tabellenliste speichern.
+       */
 
-    public VerbindungJavaDB(String server, String datenbank, String benutzer, String password){
-        /**
-         * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank auslesen
-         * und in die tabellenliste speichern.
-         */
-        String URL2 = "jdbc:derby://" + server;
+      // Treiber laden
+      try {
+         Class.forName(treiber).newInstance();
+      } catch (Exception e) {
+         logger.error("JDBC/Derby-Treiber konnte nicht geladen werden!", e);
+         
+         return;
+      }
+      // Verbindung aufbauen
+      try {
+         verbindung = DriverManager.getConnection(URL + "/" + datenbank, benutzer, password);
+         befehl = verbindung.createStatement();
+      } catch (Exception e) {
+         logger.error("Verbindung zu " + URL + " konnte nicht hergestellt werden.", e);
+      }
+   }
 
-        // Treiber laden
-        try {
-            Class.forName(treiber).newInstance();
-        } catch (Exception e) {
-            System.out.println("JDBC/Derby-Treiber konnte nicht geladen werden!");
-            return;
-        }
+   public VerbindungJavaDB(String server, String datenbank, String benutzer, String password) {
+      /**
+       * Treiber laden, Verbindung aufbauen und die Tabellen der Datenbank
+       * auslesen
+       * und in die tabellenliste speichern.
+       */
+      String URL2 = "jdbc:derby://" + server;
 
-        // Verbindung aufbauen
-        try {
-            verbindung = DriverManager.getConnection(URL2 + "/" + datenbank, benutzer, password);
-            befehl = verbindung.createStatement();
-        } catch (Exception e) {
-            System.err.println("Verbindung zu " + URL2 +
-                    " konnte nicht hergestellt werden.");
-        }
-    }
+      // Treiber laden
+      try {
+         Class.forName(treiber).newInstance();
+      } catch (Exception e) {
+         logger.error("JDBC/Derby-Treiber konnte nicht geladen werden!", e);
+         return;
+      }
 
-    public boolean connected(){
-        try{
-            return verbindung.isValid(3);
-        }catch (Exception e) {
-            return false;
-        }
-    }
-    
-    public ResultSet query(String sqltext){
-                /**
-         * Die Sql-Abfrage gibt den ResultSet zurück. Dafür muss vermutlich java.sql.*
-         * in der aufrufenden Klasse definiert sein :(
-         */
-        ResultSet daten = null;
-        try {
-            daten = befehl.executeQuery(sqltext);
-        } catch (Exception e) {
-            System.err.println("SQL: " + sqltext);
-            e.printStackTrace();
-        }
-        return daten;
-    }
+      // Verbindung aufbauen
+      try {
+         verbindung = DriverManager.getConnection(URL2 + "/" + datenbank, benutzer, password);
+         befehl = verbindung.createStatement();
+      } catch (Exception e) {
+         logger.error("Verbindung zu " + URL2 + " konnte nicht hergestellt werden.", e);
+      }
+   }
 
-    public boolean sql(String sqltext){
-        boolean ok = false;
-        try {
-            befehl.execute(sqltext);
-            ok = true;
-        } catch (Exception e) {
-            System.err.println("SQL: " + sqltext);
-            e.printStackTrace();
-        }
-        return ok;
-    }
+   @Override
+   public boolean connected() {
+      try {
+         return verbindung.isValid(3);
+      } catch (Exception e) {
+         logger.warn("param 3", e);
+         return false;
+      }
+   }
 
-    public void close(){
-        try {
-            verbindung.close();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+   @Override
+   public ResultSet query(CharSequence sqltext) throws SQLException {
+      ResultSet daten = null;
+      try {
+         logger.debug("executing: " + sqltext);
+         daten = befehl.executeQuery(sqltext.toString());
+      } catch (Exception e) {
+         logger.error("queriing: " + sqltext, e);
+      }
+      return daten;
+   }
+
+   @Override
+   public boolean sql(CharSequence sql) throws SQLException {
+      boolean ok = false;
+      try {
+         logger.debug("executing: " + sql);
+         befehl.execute(sql.toString());
+         ok = true;
+      } catch (Exception e) {
+         logger.error("queriing: " + sql, e);
+      }
+      return ok;
+   }
+
+   @Override
+   public void close() {
+      try {
+         verbindung.close();
+      } catch (Exception e) {
+         logger.error("close failed: ", e);
+      }
+   }
+
 }

@@ -4,6 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 
+import org.apache.log4j.Logger;
+
 import de.kreth.hsqldbcreator.HsqlCreator;
 
 public abstract class Verbindung {
@@ -12,6 +14,7 @@ public abstract class Verbindung {
 		HSQLDB, MYSQL
 	}
 
+   protected Logger logger = Logger.getLogger(getClass());
 	private static final String DBTYPE = "dbtype";
 
 	public abstract boolean connected();
