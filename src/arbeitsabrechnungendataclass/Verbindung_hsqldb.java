@@ -4,13 +4,17 @@ package arbeitsabrechnungendataclass;
 /**
  * @author markus
  */
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Verbindung_hsqldb {
 
-   Logger logger = Logger.getLogger(getClass());
+   Logger logger = LoggerFactory.getLogger(getClass());
    static String treiber = "org.hsqldb.jdbcDriver";
    static String URL = "jdbc:hsqldb:file:";
    static String benutzer = "sa";
@@ -28,33 +32,6 @@ public class Verbindung_hsqldb {
     */
    public Verbindung_hsqldb() {
       this("daten");
-   }
-
-   public void createTables() {
-
-      logger.trace("creating tables klienten, angebote, einheiten, klienten_angebote, rechnungen, rechnungen_einheiten");
-      sql("CREATE TABLE klienten ( " + "klienten_id int NOT NULL, " + "Kunde varchar(50) DEFAULT NULL, " + "KAdresse1 varchar(50) DEFAULT NULL, "
-            + "KAdresse2 varchar(50) DEFAULT NULL, " + "KPLZ varchar(5) DEFAULT NULL, " + "KOrt varchar(50) DEFAULT NULL, " + "KTelefon varchar(30) DEFAULT NULL, "
-            + "KEmail varchar(30) DEFAULT NULL, " + "Auftraggeber varchar(50) NOT NULL, " + "AAdresse1 varchar(50) NOT NULL, " + "AAdresse2 varchar(50) DEFAULT NULL, "
-            + "APLZ varchar(5) NOT NULL, " + "AOrt varchar(50) NOT NULL, " + "ATelefon varchar(30) DEFAULT NULL, " + "AEmail varchar(30) DEFAULT NULL, "
-            + "Bemerkungen varchar(250), " + "Zusatz1 tinyint DEFAULT NULL, " + "Zusatz1_Name varchar(100) DEFAULT NULL, " + "Zusatz2 tinyint DEFAULT NULL, "
-            + "Zusatz2_Name varchar(100) DEFAULT NULL, " + "tex_datei varchar(255) DEFAULT NULL, " + "rechnungnummer_bezeichnung varchar(255) DEFAULT NULL,"
-            + "PRIMARY KEY (klienten_id));");
-      sql("CREATE TABLE angebote (" + "angebote_id int  NOT NULL, " + "klienten_id int  DEFAULT NULL, " + "Inhalt varchar(60) NOT NULL, " + "Preis float NOT NULL, "
-            + "preis_pro_stunde tinyint NOT NULL, " + "Beschreibung varchar(250), " + "PRIMARY KEY (angebote_id));");
-      sql("CREATE TABLE einheiten (" + "einheiten_id int NOT NULL, " + "klienten_id int NOT NULL, " + "angebote_id int NOT NULL, " + "Datum date NOT NULL, "
-            + "Beginn datetime DEFAULT NULL , " + "Ende datetime DEFAULT NULL , " + "Dauer float NOT NULL , " + "zusatz1 varchar(255) DEFAULT NULL, "
-            + "zusatz2 varchar(255) DEFAULT NULL, " + "Preis float NOT NULL , " + "Preisänderung float NOT NULL , " + "Rechnung_verschickt boolean DEFAULT NULL, "
-            + "Rechnung_Datum datetime DEFAULT NULL, " + "rechnung_id int DEFAULT NULL, " + "Bezahlt boolean DEFAULT NULL, " + "Bezahlt_Datum timestamp NULL, "
-            + "rechnungen_id int DEFAULT NULL, " + "PRIMARY KEY (einheiten_id));");
-      sql("CREATE TABLE klienten_angebote (" + "klienten_angebote_id int NOT NULL , " + "klienten_id int NOT NULL, " + "angebote_id int NOT NULL, "
-            + "PRIMARY KEY (klienten_angebote_id), " + "UNIQUE (klienten_id,angebote_id));");
-      sql("CREATE TABLE rechnungen ( " + "rechnungen_id int NOT NULL, " + "klienten_id int NOT NULL, " + "datum datetime NOT NULL, " + "rechnungnr varchar(255) NOT NULL, "
-            + "betrag float NOT NULL, " + "texdatei varchar(255) NOT NULL, " + "pdfdatei varchar(255) NOT NULL, " + "adresse varchar(255) NOT NULL, " + "zusatz1 boolean NOT NULL, "
-            + "zusatz2 boolean NOT NULL, " + "zusammenfassungen boolean NOT NULL, " + "zahldatum date NOT NULL, " + "geldeingang date DEFAULT NULL, "
-            + "timestamp timestamp NOT NULL , " + "PRIMARY KEY (rechnungen_id));");
-      sql("CREATE TABLE rechnungen_einheiten ( " + "rechnungen_einheiten_id bigint NOT NULL, " + "rechnungen_id int NOT NULL, " + "einheiten_id int NOT NULL, "
-            + "PRIMARY KEY (rechnungen_einheiten_id));");
    }
 
    /**
