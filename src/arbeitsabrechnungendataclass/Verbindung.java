@@ -4,7 +4,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import de.kreth.hsqldbcreator.HsqlCreator;
 
@@ -14,7 +15,7 @@ public abstract class Verbindung {
 		HSQLDB, MYSQL
 	}
 
-   protected Logger logger = Logger.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 	private static final String DBTYPE = "dbtype";
 
 	public abstract boolean connected();
@@ -40,6 +41,7 @@ public abstract class Verbindung {
 
 	/**
 	 * stellt eine Verbindung her
+	 * 
 	 * @param options
 	 * @return {@link Verbindung} passend zu den Einstellungen in options
 	 */
@@ -49,9 +51,8 @@ public abstract class Verbindung {
 		if (isOldConnectionData(options)) {
 			verbindung = new Verbindung_mysql(options);
 		} else if (options.containsKey(DBTYPE)) {
-			
-			ConnectionTypes type = ConnectionTypes.valueOf(options
-					.getProperty(DBTYPE));
+
+			ConnectionTypes type = ConnectionTypes.valueOf(options.getProperty(DBTYPE));
 
 			switch (type) {
 			case HSQLDB:
@@ -72,9 +73,10 @@ public abstract class Verbindung {
 	}
 
 	private static boolean isOldConnectionData(Properties options) {
-		return options.containsKey("sqlserver")
-				&& options.containsKey("datenbank")
-				&& options.containsKey("user")
+		return options.containsKey("sqlserver") && options.containsKey("datenbank") && options.containsKey("user")
 				&& options.containsKey("password");
 	}
+
+	public abstract ResultSet getAutoincrement() throws SQLException;
+
 }
